@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEVGROUP4</title>
+</head>
+<body>
+    <p>if you want to upload a csv click do it below</p>
+    <input type="file" id="input_file" accept=".csv"/>
+    <br/>
+
+    <table id="dispTable">
+
+    </table>
+    <textarea name="output" id="txa_output" cols="30" rows="10"></textarea>
+
+<script> 
+    /* let file = document.getElementById("input_file")
+    file.addEventListener("change",function(){
+        var reader = new FileReader();
+        reader.onload = function(progressEvent){
+            console.log(this.result)
+            document.getElementById("txa_output").value += this.result
+        };
+        reader.readAsText(this.files[0])
+    }) */
+
+    const csvtoarray = (data, delimiter = ',', omitFirstRow =false)=>
+    data
+        .slice(omitFirstRow?data.indexOf('\n') +1:0)
+        .split('\n')
+        .map(v=>v.split(delimiter));
+
+   
+
+    
+
+
+
+    
+    
+</script>
+    
+</body>
+</html>
