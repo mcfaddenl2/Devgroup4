@@ -12,12 +12,21 @@
 </head>
 
 <body>
+    <label for = "fileType">Choose File Type:</label>
+    <select name"fileType" id = "fileTypes">
+        <option value = "Raw"> Raw</option>
+        <option value = "Table"> Table</option>
+        <option value = "Gallary"> Gallary</option>
+    </select>
+        
+                                            
     <input type="file" id="inputFile" accept=".csv">
     <pre id="csvData"></pre>
     <textarea name="" id="taResults" cols="100" rows="10"></textarea>
     <button id="btnView">click here to view the data</button>
     <script>
-
+        
+        
         let myArray;
         document.getElementById("btnView").addEventListener('click',viewArray)
         // Function to handle when a CSV file is selected
