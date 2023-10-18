@@ -26,6 +26,9 @@
     <button id="btnView">click here to view the data</button>
     <script>
         
+        //get the selected value from the drop down
+        selectElement = document.querySelector('#fileTypes');
+        specifeidView = selectElement.value;
         
         let myArray;
         document.getElementById("btnView").addEventListener('click',viewArray)
