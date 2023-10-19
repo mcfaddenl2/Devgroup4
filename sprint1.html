@@ -3,86 +3,126 @@
 
 <head>
     <title>Sprint 1</title>
+    <!-- CSS for styling table and gallery items -->
     <style>
-        table{
+        table {
             border-color: black;
             border-width: 10px;
+        }
+        .gallery-item {
+            border: 1px solid black;
+            padding: 10px;
+            display: inline-block;
+            margin: 5px;
         }
     </style>
 </head>
 
 <body>
-    <label for = "fileType">Choose File Type:</label>
-    <select name"fileType" id = "fileTypes">
-        <option value = "Raw"> Raw</option>
-        <option value = "Table"> Table</option>
-        <option value = "Gallary"> Gallary</option>
+    <!-- Dropdown for selecting the display type -->
+    <label for="fileType">Choose File Type:</label>
+    <select name="fileType" id="fileTypes">
+        <option value="Raw"> Raw</option>
+        <option value="Table"> Table</option>
+        <option value="Gallery"> Gallery</option>
     </select>
-        
-                                            
-    <input type="file" id="inputFile" accept=".csv">
+
+    <!-- File input to upload CSV or Excel files -->
+    <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
     <pre id="csvData"></pre>
+    <!-- Textarea for displaying raw JSON data -->
     <textarea name="" id="taResults" cols="100" rows="10"></textarea>
+    <!-- Button to trigger data view -->
     <button id="btnView">click here to view the data</button>
+    <!-- Div to display the output -->
+    <div id="output"></div>
+
+    <!-- Including xlsx library for handling Excel files -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+
     <script>
-        
-        //get the selected value from the drop down
-        selectElement = document.querySelector('#fileTypes');
-        specifeidView = selectElement.value;
-        
+        // Variable to hold the parsed data from the uploaded file
         let myArray;
-        document.getElementById("btnView").addEventListener('click',viewArray)
-        // Function to handle when a CSV file is selected
+        // Output div where the data will be displayed
+        const outputDiv = document.getElementById('output');
+
+        // Event listener for the "View Data" button
+        document.getElementById("btnView").addEventListener('click', function() {
+            // Get the selected display type from the dropdown
+            const selectElement = document.querySelector('#fileTypes');
+            const specifiedView = selectElement.value;
+
+            // Display data according to the selected type
+            switch (specifiedView) {
+                case 'Raw':
+                    // Display as Raw JSON data
+                    outputDiv.innerHTML = JSON.stringify(myArray, null, 2);
+                    break;
+                case 'Table':
+                    // Display as HTML Table
+                    const table = document.createElement('table');
+                    for (let row of myArray) {
+                        let newRow = table.insertRow();
+                        for (let cell of row) {
+                            let newCell = newRow.insertCell();
+                            newCell.textContent = cell;
+                        }
+                    }
+                    outputDiv.innerHTML = '';
+                    outputDiv.appendChild(table);
+                    break;
+                case 'Gallery':
+                    // Display as a gallery of divs
+                    let galleryHTML = '';
+                    for (let row of myArray) {
+                        let item = '<div class="gallery-item">' + row.join(' | ') + '</div>';
+                        galleryHTML += item;
+                    }
+                    outputDiv.innerHTML = galleryHTML;
+                    break;
+            }
+        });
+
+        // Event listener for file input change
         document.getElementById('inputFile').addEventListener('change', function (event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function (e) {
-                    const csvData = e.target.result;
-                    const csvArray = csvToArray(csvData);
-                    document.getElementById('taResults').value = JSON.stringify(csvArray, null);
+                    const fileData = e.target.result;
+                    // Handle CSV files
+                    if (file.name.endsWith('.csv')) {
+                        myArray = csvToArray(fileData);
+                    } 
+                    // Handle Excel files
+                    else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                        const workbook = XLSX.read(fileData, { type: 'binary' });
+                        const firstSheet = workbook.SheetNames[0];
+                        myArray = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                    }
+                    // Update the textarea with the parsed data
+                    document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
-                reader.readAsText(file);
+                // Read the file accordingly
+                if (file.name.endsWith('.csv')) {
+                    reader.readAsText(file);
+                } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+                    reader.readAsBinaryString(file);
+                }
             }
         });
 
-        // Function to convert CSV data into an array
+        // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
             const result = [];
-
             rows.forEach(row => {
                 const columns = row.split(',');
                 result.push(columns);
             });
-            myArray = result
-
+            myArray = result;
             return result;
         }
-        console.log(myArray)
-
-        function viewArray() {
-            //create a Table Object
-            let table = document.createElement('table');
-            //iterate over every array(row) within tableArr
-            for (let row of myArray) {
-                //Insert a new row element into the table element
-                table.insertRow();
-                //Iterate over every index(cell) in each array(row)
-                for (let cell of row) {
-                    //While iterating over the index(cell)
-                    //insert a cell into the table element
-                    let newCell = table.rows[table.rows.length - 1].insertCell();
-                    //add text to the created cell element
-                    newCell.textContent = cell;
-                }
-            }
-            //append the compiled table to the DOM
-            document.body.appendChild(table);
-        }
-
-
     </script>
 </body>
-
 </html>
