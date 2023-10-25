@@ -34,7 +34,7 @@
     <pre id="csvData"></pre>
     <!-- Textarea for displaying raw JSON data -->
     <textarea name="" id="taResults" cols="100" rows="10"></textarea>
-    <!-- Button to trigger data view -->
+
     <!-- Dropdown for selecting the display type -->
     <br>
     <label for="fileType">Choose File Type:</label>
@@ -43,15 +43,17 @@
         <option value="Table"> Table</option>
         <option value="Gallery"> Gallery</option>
     </select>
-
-    <button id="btnView">click here to view the data</button>
+    <!-- Button to trigger data view -->
+    <button id="btnView">Click Here to View the Data</button>
     <br>
     <br>
     <label for="txtPk">Available key to identify an entry</label>
     <textarea name="txtPk" id="txtPk" cols="30" rows="2" disabled="true"></textarea>
     <button id="btnPK">Click here to find primary key</button>
     <!-- Div to display the output -->
-
+    <br>
+    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
+    <br>
     <div id="output"></div>
 
     <!-- Including xlsx library for handling Excel files -->
@@ -68,7 +70,6 @@
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
-
             // Display data according to the selected type
             switch (specifiedView) {
                 case 'Raw':
@@ -86,7 +87,6 @@
                             newCell.textContent = cell;
                         }
                     }
-
                     outputDiv.innerHTML = '';
                     outputDiv.appendChild(table);
                     break;
@@ -130,7 +130,29 @@
                     reader.readAsBinaryString(file);
                 }
             }
+            
         });
+
+        //Event listener for the primary key button. calls the function and displays the answer in the text box
+        document.getElementById("btnPK").addEventListener('click', function () {
+            const primaryKeyResult = findPrimaryKey(myArray);
+            document.getElementById('txtPk').value = primaryKeyResult;
+        });
+        // The actual code to find the primary key.
+        function findPrimaryKey(data) {
+            if (data.length === 0) {
+                return "No data available";
+            }
+            const firstColumn = data.map(row => row[0]);
+            const uniqueValues = new Set(firstColumn);
+            // checks if the column has unique data
+            if (uniqueValues.size === data.length) {
+                return `Primary key found: ${data[0][0]}`;
+            } else {
+                //if there are duplicates found in the column - we have none
+                return "No primary key found";
+            }
+        }
 
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
@@ -142,6 +164,13 @@
             });
             myArray = result;
             return result;
+        }
+
+        function clearEverything(){
+            document.getElementById("taResults").value = "";
+            outputDiv.innerHTML = "";
+            document.getElementById('txtPk').value =" ";
+
         }
 
     </script>
