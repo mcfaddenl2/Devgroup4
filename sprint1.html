@@ -42,20 +42,42 @@
     <!-- Div to display the output -->
     <div id="output"></div>
 
+    <!-- Dropdown for input and output -->
+    <Form>
+    <select id = "selectedInput">
+        <option>Choose Input Columns </option>
+    </select>
+    </Form>
+
+    <Form>
+    <select id = "selectedOutput">
+        <option>Choose Output Columns </option>
+    </select>
+    
+    </Form>    
+    
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
+        document.getElementById("selectedOutput").disabled = true;
+        document.getElementById("selectedInput").disabled = true;
         // Variable to hold the parsed data from the uploaded file
         let myArray;
         // Output div where the data will be displayed
         const outputDiv = document.getElementById('output');
+        //2D array to store the selected input and output columns
+        const selectedColumns = {input:[], output: [] };
 
         // Event listener for the "View Data" button
         document.getElementById("btnView").addEventListener('click', function() {
+            //enable 
+            
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
+
+            
 
             // Display data according to the selected type
             switch (specifiedView) {
@@ -98,12 +120,16 @@
                     // Handle CSV files
                     if (file.name.endsWith('.csv')) {
                         myArray = csvToArray(fileData);
+                        populateDropdown("selectedInput", myArray[0]);
+                        populateDropdown("selectedOutput", myArray[0]);
                     } 
                     // Handle Excel files
                     else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                         const workbook = XLSX.read(fileData, { type: 'binary' });
                         const firstSheet = workbook.SheetNames[0];
                         myArray = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                        populateDropdown("selectedInput", myArray[0]);
+                        populateDropdown("selectedOutput", myArray[0]);
                     }
                     // Update the textarea with the parsed data
                     document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
@@ -115,8 +141,52 @@
                     reader.readAsBinaryString(file);
                 }
             }
-        });
-
+        });//end event Listener for inputFile
+        //Event listener for input dropdown change
+        document.getElementById('selectedInput').addEventListener('change', function() {
+            const selectedInputIndex = this.value;
+            if (selectedInputIndex !== '') {
+                 if (selectedColumns.output.includes(selectedInputIndex)) {
+                        // column is already an output; reset the input dropdown
+                    this.value = '';
+                    alert("This column is already selected as an output.");
+             }  
+                 else {
+                    selectedColumns.input.push(selectedInputIndex);
+                    document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
+                    // Disable the selected input in the output dropdown
+                    for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
+                        if (i == selectedInputIndex) {
+                            document.getElementById('selectedOutput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedOutput').options[i].disabled = false;
+                        }
+                }
+            }
+            }
+            
+        });//end event Listner for selectedInput
+        document.getElementById('selectedOutput').addEventListener('change', function() {
+            const selectedOutputIndex = this.value;
+            if (selectedOutputIndex !== '') {
+                 if (selectedColumns.input.includes(selectedOutputIndex)) {
+                    // The selected column is already an input; reset the output dropdown
+                    this.value = '';
+                    alert("This column is already selected as an input.");
+                }
+                 else {
+                    selectedColumns.output.push(selectedOutputIndex);
+                    document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
+                    // Disable the selected output in the input dropdown
+                    for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
+                        if (i == selectedOutputIndex) {
+                            document.getElementById('selectedInput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedInput').options[i].disabled = false;
+                        }
+                    }
+            }
+        }        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
@@ -128,6 +198,22 @@
             myArray = result;
             return result;
         }
+        function populateDropdown(dropdownId, data) {
+            const dropdown = document.getElementById(dropdownId);
+            const inputDropdown = document.getElementById("selectedInput");
+            dropdown.innerHTML = "";
+            data.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.text = item;
+                if (dropdownId === "selectedOutput" && inputDropdown.value === index) {
+                    option.disabled = true;
+                }
+        
+                dropdown.add(option);
+            });
+            dropdown.disabled = false;
+        }//end populateDropDown
     </script>
 </body>
 </html>
