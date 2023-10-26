@@ -66,6 +66,8 @@
         let myArray;
         // Output div where the data will be displayed
         const outputDiv = document.getElementById('output');
+        //2D array to store the selected input and output columns
+        const selectedColumns = {input:[], output: [] };
 
         // Event listener for the "View Data" button
         document.getElementById("btnView").addEventListener('click', function() {
@@ -74,6 +76,8 @@
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
+
+            
 
             // Display data according to the selected type
             switch (specifiedView) {
@@ -141,18 +145,36 @@
         //Event listener for input dropdown change
         document.getElementById('selectedInput').addEventListener('change', function() {
             const selectedInputIndex = this.value;
-            const outputDropdown = document.getElementById('selectedOutput');
-        
-            // Re-enable all options in the output dropdown
-            for (let i = 0; i < outputDropdown.options.length; i++) {
-                outputDropdown.options[i].disabled = false;
-            }
-            // Disable the selected input in the output dropdown
             if (selectedInputIndex !== '') {
-                outputDropdown.options[selectedInputIndex].disabled = true;
-            }
+            selectedColumns.input.push(selectedInputIndex);
+            document.getElementById('selectedInput').option[i].disable = true;
+            // Disable the selected input in the output dropdown
+            for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
+                if (i == selectedInputIndex) {
+                    document.getElementById('selectedOutput').options[i].disabled = true;
+                } else {
+                    document.getElementById('selectedOutput').options[i].disabled = false;
+                }
+        }
+    }
+            
+            
         });//end event Listner for selectedInput
-
+        document.getElementById('selectedOutput').addEventListener('change', function() {
+            const selectedOutputIndex = this.value;
+            if (selectedOutputIndex !== '') {
+                selectedColumns.output.push(selectedOutputIndex);
+                document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
+                // Disable the selected output in the input dropdown
+                for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
+                    if (i == selectedOutputIndex) {
+                        document.getElementById('selectedInput').options[i].disabled = true;
+                    } else {
+                        document.getElementById('selectedInput').options[i].disabled = false;
+                    }
+                }
+            }
+        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
