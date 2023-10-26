@@ -146,35 +146,47 @@
         document.getElementById('selectedInput').addEventListener('change', function() {
             const selectedInputIndex = this.value;
             if (selectedInputIndex !== '') {
-            selectedColumns.input.push(selectedInputIndex);
-            document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
-            // Disable the selected input in the output dropdown
-            for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
-                if (i == selectedInputIndex) {
-                    document.getElementById('selectedOutput').options[i].disabled = true;
-                } else {
-                    document.getElementById('selectedOutput').options[i].disabled = false;
+                 if (selectedColumns.output.includes(selectedInputIndex)) {
+                        // column is already an output; reset the input dropdown
+                    this.value = '';
+                    alert("This column is already selected as an output.");
+             }  
+                 else {
+                    selectedColumns.input.push(selectedInputIndex);
+                    document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
+                    // Disable the selected input in the output dropdown
+                    for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
+                        if (i == selectedInputIndex) {
+                            document.getElementById('selectedOutput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedOutput').options[i].disabled = false;
+                        }
                 }
-        }
-    }
-            
+            }
+            }
             
         });//end event Listner for selectedInput
         document.getElementById('selectedOutput').addEventListener('change', function() {
             const selectedOutputIndex = this.value;
             if (selectedOutputIndex !== '') {
-                selectedColumns.output.push(selectedOutputIndex);
-                document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
-                // Disable the selected output in the input dropdown
-                for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
-                    if (i == selectedOutputIndex) {
-                        document.getElementById('selectedInput').options[i].disabled = true;
-                    } else {
-                        document.getElementById('selectedInput').options[i].disabled = false;
-                    }
+                 if (selectedColumns.input.includes(selectedOutputIndex)) {
+                    // The selected column is already an input; reset the output dropdown
+                    this.value = '';
+                    alert("This column is already selected as an input.");
                 }
+                 else {
+                    selectedColumns.output.push(selectedOutputIndex);
+                    document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
+                    // Disable the selected output in the input dropdown
+                    for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
+                        if (i == selectedOutputIndex) {
+                            document.getElementById('selectedInput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedInput').options[i].disabled = false;
+                        }
+                    }
             }
-        });
+        }        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
