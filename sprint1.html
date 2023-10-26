@@ -5,10 +5,20 @@
     <title>Sprint 1</title>
     <!-- CSS for styling table and gallery items -->
     <style>
-        table {
-            border-color: black;
-            border-width: 10px;
+       table {
+            background-color: lightgray;
+            border-collapse: collapse;
+            width: 100%;
+            border: 2px solid black;
+            /* Add this line to set the border around the table */
         }
+
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
         .gallery-item {
             border: 1px solid black;
             padding: 10px;
@@ -41,6 +51,9 @@
     <button id="btnView">click here to view the data</button>
     <!-- Div to display the output -->
     <div id="output"></div>
+    <label for="txtPk">Available key to identify an entry</label>
+    <textarea name="txtPk" id="txtPk" cols="30" rows="2" disabled="true"></textarea>
+    <button id="btnPK">Click here to find primary key</button>
 
     <!-- Dropdown for input and output -->
     <Form>
@@ -55,6 +68,8 @@
     </select>
     
     </Form>    
+    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
+    <br>
     
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
@@ -214,6 +229,34 @@
             });
             dropdown.disabled = false;
         }//end populateDropDown
+
+        //Event listener for the primary key button. calls the function and displays the answer in the text box
+        document.getElementById("btnPK").addEventListener('click', function () {
+            const primaryKeyResult = findPrimaryKey(myArray);
+            document.getElementById('txtPk').value = primaryKeyResult;
+        });
+        // The actual code to find the primary key.
+        function findPrimaryKey(data) {
+            if (data.length === 0) {
+                return "No data available";
+            }
+            const firstColumn = data.map(row => row[0]);
+            const uniqueValues = new Set(firstColumn);
+            // checks if the column has unique data
+            if (uniqueValues.size === data.length) {
+                return `Primary key found: ${data[0][0]}`;
+            } else {
+                //if there are duplicates found in the column - we have none
+                return "No primary key found";
+            }
+        }
+
+         function clearEverything(){
+            document.getElementById("taResults").value = "";
+            outputDiv.innerHTML = "";
+            document.getElementById('txtPk').value =" ";
+
+        }
     </script>
 </body>
 </html>
