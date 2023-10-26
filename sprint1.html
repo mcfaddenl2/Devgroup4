@@ -147,7 +147,7 @@
             const selectedInputIndex = this.value;
             if (selectedInputIndex !== '') {
             selectedColumns.input.push(selectedInputIndex);
-            document.getElementById('selectedInput').option[i].disable = true;
+            document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
             // Disable the selected input in the output dropdown
             for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
                 if (i == selectedInputIndex) {
