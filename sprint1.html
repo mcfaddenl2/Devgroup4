@@ -5,7 +5,7 @@
     <title>Sprint 1</title>
     <!-- CSS for styling table and gallery items -->
     <style>
-       table {
+        table {
             background-color: lightgray;
             border-collapse: collapse;
             width: 100%;
@@ -38,7 +38,7 @@
         <option value="Gallery"> Gallery</option>
 
 
-   
+
 
     </select>
 
@@ -57,20 +57,37 @@
 
     <!-- Dropdown for input and output -->
     <Form>
-    <select id = "selectedInput">
-        <option>Choose Input Columns </option>
-    </select>
+        <select id="selectedInput">
+            <option>Choose Input Columns </option>
+        </select>
     </Form>
 
     <Form>
-    <select id = "selectedOutput">
-        <option>Choose Output Columns </option>
-    </select>
-    
-    </Form>    
+        <select id="selectedOutput">
+            <option>Choose Output Columns </option>
+        </select>
+
+    </Form>
     <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
     <br>
-    
+
+    <!-- Dropdown for selecting the column to sort -->
+    <label for="sortColumn">Sort By:</label>
+    <select id="sortColumn">
+        <option value="">Choose Column to Sort</option>
+    </select>
+
+    <!-- Dropdown for selecting sorting order -->
+    <label for="sortOrder">Order:</label>
+    <select id="sortOrder">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+
+    <!-- Button to trigger sort -->
+    <button id="btnSort">Sort</button>
+
+
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
@@ -82,17 +99,17 @@
         // Output div where the data will be displayed
         const outputDiv = document.getElementById('output');
         //2D array to store the selected input and output columns
-        const selectedColumns = {input:[], output: [] };
+        const selectedColumns = { input: [], output: [] };
 
         // Event listener for the "View Data" button
-        document.getElementById("btnView").addEventListener('click', function() {
+        document.getElementById("btnView").addEventListener('click', function () {
             //enable 
-            
+
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
 
-            
+
 
             // Display data according to the selected type
             switch (specifiedView) {
@@ -137,7 +154,7 @@
                         myArray = csvToArray(fileData);
                         populateDropdown("selectedInput", myArray[0]);
                         populateDropdown("selectedOutput", myArray[0]);
-                    } 
+                    }
                     // Handle Excel files
                     else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                         const workbook = XLSX.read(fileData, { type: 'binary' });
@@ -146,6 +163,8 @@
                         populateDropdown("selectedInput", myArray[0]);
                         populateDropdown("selectedOutput", myArray[0]);
                     }
+
+                    populateSortDropdown(myArray[0]);
                     // Update the textarea with the parsed data
                     document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
@@ -158,15 +177,15 @@
             }
         });//end event Listener for inputFile
         //Event listener for input dropdown change
-        document.getElementById('selectedInput').addEventListener('change', function() {
+        document.getElementById('selectedInput').addEventListener('change', function () {
             const selectedInputIndex = this.value;
             if (selectedInputIndex !== '') {
-                 if (selectedColumns.output.includes(selectedInputIndex)) {
-                        // column is already an output; reset the input dropdown
+                if (selectedColumns.output.includes(selectedInputIndex)) {
+                    // column is already an output; reset the input dropdown
                     this.value = '';
                     alert("This column is already selected as an output.");
-             }  
-                 else {
+                }
+                else {
                     selectedColumns.input.push(selectedInputIndex);
                     document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
                     // Disable the selected input in the output dropdown
@@ -176,20 +195,20 @@
                         } else {
                             document.getElementById('selectedOutput').options[i].disabled = false;
                         }
+                    }
                 }
             }
-            }
-            
+
         });//end event Listner for selectedInput
-        document.getElementById('selectedOutput').addEventListener('change', function() {
+        document.getElementById('selectedOutput').addEventListener('change', function () {
             const selectedOutputIndex = this.value;
             if (selectedOutputIndex !== '') {
-                 if (selectedColumns.input.includes(selectedOutputIndex)) {
+                if (selectedColumns.input.includes(selectedOutputIndex)) {
                     // The selected column is already an input; reset the output dropdown
                     this.value = '';
                     alert("This column is already selected as an input.");
                 }
-                 else {
+                else {
                     selectedColumns.output.push(selectedOutputIndex);
                     document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
                     // Disable the selected output in the input dropdown
@@ -200,8 +219,9 @@
                             document.getElementById('selectedInput').options[i].disabled = false;
                         }
                     }
+                }
             }
-        }        });
+        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
@@ -224,7 +244,7 @@
                 if (dropdownId === "selectedOutput" && inputDropdown.value === index) {
                     option.disabled = true;
                 }
-        
+
                 dropdown.add(option);
             });
             dropdown.disabled = false;
@@ -251,12 +271,68 @@
             }
         }
 
-         function clearEverything(){
+        function populateSortDropdown(data) {
+            const dropdown = document.getElementById("sortColumn");
+            dropdown.innerHTML = "<option value=''>Choose Column to Sort</option>";
+            data.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.text = item;
+                dropdown.add(option);
+            });
+            dropdown.disabled = false;  // Enable the dropdown
+        }
+
+        document.getElementById("btnSort").addEventListener('click', function () {
+            // Get the selected column index from the dropdown
+            const sortIndex = parseInt(document.getElementById("sortColumn").value);
+
+            // Get the selected sorting order from the dropdown
+            const sortOrder = document.getElementById("sortOrder").value;
+
+            // Check if a column has been selected
+            if (isNaN(sortIndex)) {
+                alert("Please select a column to sort.");
+                return;
+            }
+
+            // Copy the header row
+            const header = myArray[0];
+
+            // Copy the data without the header row for sorting
+            let sortableArray = myArray.slice(1);
+
+            // Sort the array based on the selected column and order
+            sortableArray.sort((a, b) => {
+                const itemA = a[sortIndex];
+                const itemB = b[sortIndex];
+                if (itemA < itemB) {
+                    return sortOrder === "asc" ? -1 : 1;
+                }
+                if (itemA > itemB) {
+                    return sortOrder === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
+
+            // Reconstruct the original array with the sorted data
+            myArray = [header].concat(sortableArray);
+
+            // Re-render the data
+            // (Since we don't have a reusable function to render the data, I'm triggering a click event on 'btnView')
+            document.getElementById("btnView").click();
+        });
+
+
+
+
+        function clearEverything() {
             document.getElementById("taResults").value = "";
             outputDiv.innerHTML = "";
-            document.getElementById('txtPk').value =" ";
+            document.getElementById('txtPk').value = " ";
 
         }
     </script>
 </body>
+
 </html>
