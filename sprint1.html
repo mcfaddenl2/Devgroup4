@@ -6,9 +6,19 @@
     <!-- CSS for styling table and gallery items -->
     <style>
         table {
-            border-color: black;
-            border-width: 10px;
+            background-color: lightgray;
+            border-collapse: collapse;
+            width: 100%;
+            border: 2px solid black;
+            /* Add this line to set the border around the table */
         }
+
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
         .gallery-item {
             border: 1px solid black;
             padding: 10px;
@@ -19,6 +29,13 @@
 </head>
 
 <body>
+    <h1>DevGroup4</h1>
+    <!-- File input to upload CSV or Excel files -->
+    <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
+    <pre id="csvData"></pre>
+    <!-- Textarea for displaying raw JSON data -->
+    <textarea name="" id="taResults" cols="100" rows="10"></textarea>
+    <br>
 
     <!-- Dropdown for selecting the display type -->
     <label for="fileType">Choose File Type:</label>
@@ -26,33 +43,61 @@
         <option value="Raw"> Raw</option>
         <option value="Table"> Table</option>
         <option value="Gallery"> Gallery</option>
-
-
-   
-
     </select>
-
-    <!-- File input to upload CSV or Excel files -->
-    <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
-    <pre id="csvData"></pre>
-    <!-- Textarea for displaying raw JSON data -->
-    <textarea name="" id="taResults" cols="100" rows="10"></textarea>
     <!-- Button to trigger data view -->
     <button id="btnView">click here to view the data</button>
     <!-- Div to display the output -->
-    <div id="output"></div>
+    <br>
+    <label for="txtPk">Available key to identify an entry</label>
+    <textarea name="txtPk" id="txtPk" cols="30" rows="2" disabled="true"></textarea>
+    <button id="btnPK">Click here to find primary key</button>
 
+    <!-- Dropdown for input and output -->
+    <Form>
+        <select id="selectedInput">
+            <option>Choose Input Columns </option>
+        </select>
+    </Form>
+
+    <Form>
+        <select id="selectedOutput">
+            <option>Choose Output Columns </option>
+        </select>
+
+    </Form>
+    <br>
+
+    <button id="btnHiLo" onclick="hiLow()">Click here to identify what good data is</button>
+    <div id="divGoodHiLow" style="display: none;">
+        <p>Check the box if a high value is considered good: </p>
+        <textarea name="textareaHiLow" id="taHiLow" cols="50" rows="4"></textarea>
+        <div id="divCheck"></div>
+    </div>
+    <br>
+    <br>
+    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
+    <br>
+    <div id="output">
+    </div>
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
+
+        document.getElementById("selectedOutput").disabled = true;
+        document.getElementById("selectedInput").disabled = true;
         // Variable to hold the parsed data from the uploaded file
         let myArray;
         // Output div where the data will be displayed
         const outputDiv = document.getElementById('output');
+        //2D array to store the selected input and output columns
+        const selectedColumns = { input: [], output: [] };
+        let table;
+
 
         // Event listener for the "View Data" button
-        document.getElementById("btnView").addEventListener('click', function() {
+        document.getElementById("btnView").addEventListener('click', function () {
+            //enable 
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
@@ -65,7 +110,7 @@
                     break;
                 case 'Table':
                     // Display as HTML Table
-                    const table = document.createElement('table');
+                    table = document.createElement('table');
                     for (let row of myArray) {
                         let newRow = table.insertRow();
                         for (let cell of row) {
@@ -98,12 +143,16 @@
                     // Handle CSV files
                     if (file.name.endsWith('.csv')) {
                         myArray = csvToArray(fileData);
-                    } 
+                        populateDropdown("selectedInput", myArray[0]);
+                        populateDropdown("selectedOutput", myArray[0]);
+                    }
                     // Handle Excel files
                     else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                         const workbook = XLSX.read(fileData, { type: 'binary' });
                         const firstSheet = workbook.SheetNames[0];
                         myArray = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
+                        populateDropdown("selectedInput", myArray[0]);
+                        populateDropdown("selectedOutput", myArray[0]);
                     }
                     // Update the textarea with the parsed data
                     document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
@@ -115,8 +164,53 @@
                     reader.readAsBinaryString(file);
                 }
             }
-        });
+        });//end event Listener for inputFile
+        //Event listener for input dropdown change
+        document.getElementById('selectedInput').addEventListener('change', function () {
+            const selectedInputIndex = this.value;
+            if (selectedInputIndex !== '') {
+                if (selectedColumns.output.includes(selectedInputIndex)) {
+                    // column is already an output; reset the input dropdown
+                    this.value = '';
+                    alert("This column is already selected as an output.");
+                }
+                else {
+                    selectedColumns.input.push(selectedInputIndex);
+                    document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
+                    // Disable the selected input in the output dropdown
+                    for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
+                        if (i == selectedInputIndex) {
+                            document.getElementById('selectedOutput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedOutput').options[i].disabled = false;
+                        }
+                    }
+                }
+            }
 
+        });//end event Listner for selectedInput
+        document.getElementById('selectedOutput').addEventListener('change', function () {
+            const selectedOutputIndex = this.value;
+            if (selectedOutputIndex !== '') {
+                if (selectedColumns.input.includes(selectedOutputIndex)) {
+                    // The selected column is already an input; reset the output dropdown
+                    this.value = '';
+                    alert("This column is already selected as an input.");
+                }
+                else {
+                    selectedColumns.output.push(selectedOutputIndex);
+                    document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
+                    // Disable the selected output in the input dropdown
+                    for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
+                        if (i == selectedOutputIndex) {
+                            document.getElementById('selectedInput').options[i].disabled = true;
+                        } else {
+                            document.getElementById('selectedInput').options[i].disabled = false;
+                        }
+                    }
+                }
+            }
+        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
@@ -128,6 +222,98 @@
             myArray = result;
             return result;
         }
+        function populateDropdown(dropdownId, data) {
+            const dropdown = document.getElementById(dropdownId);
+            const inputDropdown = document.getElementById("selectedInput");
+            dropdown.innerHTML = "";
+            data.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.text = item;
+                if (dropdownId === "selectedOutput" && inputDropdown.value === index) {
+                    option.disabled = true;
+                }
+
+                dropdown.add(option);
+            });
+            dropdown.disabled = false;
+        }//end populateDropDown
+
+        //Event listener for the primary key button. calls the function and displays the answer in the text box
+        document.getElementById("btnPK").addEventListener('click', function () {
+            const primaryKeyResult = findPrimaryKey(myArray);
+            document.getElementById('txtPk').value = primaryKeyResult;
+        });
+        // The actual code to find the primary key.
+        function findPrimaryKey(data) {
+            if (data.length === 0) {
+                return "No data available";
+            }
+            const firstColumn = data.map(row => row[0]);
+            const uniqueValues = new Set(firstColumn);
+            // checks if the column has unique data
+            if (uniqueValues.size === data.length) {
+                return `Primary key found: ${data[0][0]}`;
+            } else {
+                //if there are duplicates found in the column - we have none
+                return "No primary key found";
+            }
+        }
+        //button to remove everything 
+        function clearEverything() {
+            document.getElementById("taResults").value = "";
+            outputDiv.innerHTML = "";
+            document.getElementById('txtPk').value = " ";
+            document.getElementById("taHiLow").value = " "
+            document.getElementById('divCheck').innerHTML = " ";
+            document.getElementById("divGoodHiLow").style.display = "none"
+
+        }
+
+        //high equals good or bad - user input needed
+        function hiLow() {
+            document.getElementById("divGoodHiLow").style.display = "block"
+            const headers = myArray[0]
+            const highGood = [];
+            const highBad = [];
+            for (let i = 0; i < headers.length; i++) {
+                const myDiv = document.getElementById("divCheck");
+                const checkbox = document.createElement('input');
+                const label = document.createElement('label');
+                //dynamically creates the element for the user to select if a High value is good
+                checkbox.type = "checkbox";
+                checkbox.name = "chkHighLow";
+                checkbox.value = headers[i];
+                checkbox.id = `chkId${i}`;
+
+                label.htmlFor = `chkId${i}`;
+                label.textContent = headers[i];
+                label.name = 'labelCheck'
+
+                myDiv.appendChild(checkbox);
+                myDiv.appendChild(label);
+
+                checkbox.addEventListener('change', function () {
+                    if (this.checked) {
+                        highGood.push(headers[i]);
+                        const indexInHighBad = highBad.indexOf(headers[i]);
+                        if (indexInHighBad !== -1) {
+                            highBad.splice(indexInHighBad, 1);
+                        }
+                    } else {
+                        highBad.push(headers[i]);
+                        const indexInHighGood = highGood.indexOf(headers[i]);
+                        if (indexInHighGood !== -1) {
+                            highGood.splice(indexInHighGood, 1);
+                        }
+                    }
+                    document.getElementById("taHiLow").value = highGood
+                });
+            }
+        }
+
+
     </script>
 </body>
+
 </html>
