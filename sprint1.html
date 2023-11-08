@@ -36,12 +36,20 @@
         <option value="Raw"> Raw</option>
         <option value="Table"> Table</option>
         <option value="Gallery"> Gallery</option>
+    </select>
+    <!-- Button for standardizing-->
+    <button id=" standardize" onclick="btnStandardizeOnclick()">Standardize All Numeric data</button>
 
-
-
+    <!--Dropdonw for standardizing option-->
+    <label for="fileType">Choose Standaridizing option:</label>
+    <select name="ddStandrdize" id="ddStardize">
+        <option value="0-10"> 0-10</option>
+        <option value="1-10"> 1-10</option>
+        <option value="0-1"> 0-1</option>
+        <option value="-1to1">-1 - 1</option>
+        <option value="Z-scores">Z-Scores</option>
 
     </select>
-
     <!-- File input to upload CSV or Excel files -->
     <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
     <pre id="csvData"></pre>
@@ -103,7 +111,7 @@
 
         // Event listener for the "View Data" button
         document.getElementById("btnView").addEventListener('click', function () {
-            //enable 
+            //enable
 
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
@@ -324,7 +332,63 @@
         });
 
 
+        //Function for standaridizing btn
+        function btnStandardizeOnclick() {
+            const selectedOption = document.getElementById('ddStardize').value;
+            const header = myArray[0];
 
+            let standardizable = myArray.slice(1);
+            let numericColumns = [];
+
+            // Determine which columns are numeric
+            for (let j = 1; j < standardizable[0].length; j++) {
+                const isNumericColumn = standardizable.every(row => !isNaN(parseFloat(row[j])));
+                if (isNumericColumn) {
+                    numericColumns.push(j);
+                }
+            }
+
+
+            for (let j of numericColumns) {
+
+
+
+                let column = standardizable.map(row => parseFloat(row[j]));
+                let min = Math.min(...column);
+                let max = Math.max(...column);
+                const mean = column.reduce((sum, value) => sum + value, 0) / column.length;
+                const squaredDifferences = column.map(value => (value - mean) ** 2);
+                const variance = squaredDifferences.reduce((sum, value) => sum + value, 0) / column.length;
+                const stdDev = Math.sqrt(variance);
+                for (let i = 0; i < standardizable.length; i++) {
+
+                    switch (selectedOption) {
+                        case '0-10':
+                            standardizable[i][j] = (((standardizable[i][j] - min) / (max - min)) * 10).toFixed(2);
+                            break;
+                        case '1-10':
+                            standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
+                            break;
+                        case '0-1':
+                            standardizable[i][j] = ((standardizable[i][j] - min) / (max - min)).toFixed(2);
+                            break;
+                        case '-1to1':
+                            standardizable[i][j] = (-1 + ((standardizable[i][j] - min) / (max - min) * 2)).toFixed(2);
+                            break;
+                        case 'Z-scores':
+                            standardizable[i][j] = ((standardizable[i][j] - mean) / stdDev).toFixed(2);
+                            break;
+                    }
+                }
+
+            }
+            //standardizable = standardizable.map((row, rowIndex) => row.map((value, colIndex) => colIndex === j ? standardizedValue : value));
+
+
+
+            myArray = [header].concat(standardizable);
+            document.getElementById("btnView").click();
+        }
 
         function clearEverything() {
             document.getElementById("taResults").value = "";
