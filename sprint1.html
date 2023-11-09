@@ -78,6 +78,13 @@
     </Form>
     <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
     <br>
+    <!--///////////////////////////////////////-->
+    <button id="btnHiLo" onclick="hiLow()">Click here to identify what good data is</button>
+    <div id="divGoodHiLow" style="display: none;">
+        <p>Check the box if a high value is considered good: </p>
+        <textarea name="textareaHiLow" id="taHiLow" cols="50" rows="4"></textarea>
+        <div id="divCheck"></div>
+    </div>
 
     <!-- Dropdown for selecting the column to sort -->
     <label for="sortColumn">Sort By:</label>
@@ -91,6 +98,11 @@
         <option value="asc">Ascending</option>
         <option value="desc">Descending</option>
     </select>
+
+    <div id="divInput" style="display: none;">
+        <p>Check the box if the column is considered Input: </p>
+        <textarea name="txtInput" id="taInput" cols="50" rows=""
+    </div>
 
     <!-- Button to trigger sort -->
     <button id="btnSort">Sort</button>
@@ -393,9 +405,54 @@
         function clearEverything() {
             document.getElementById("taResults").value = "";
             outputDiv.innerHTML = "";
+            myArray = [];
+            document.getElementById('txtPk').value = " ";
+            document.getElementById("taHiLow").value = " "
+            document.getElementById('divCheck').innerHTML = " ";
             document.getElementById('txtPk').value = " ";
 
         }
+        function hiLow() {
+            document.getElementById("divGoodHiLow").style.display = "block"
+            const headers = myArray[0]
+            const highGood = [];
+            const highBad = [];
+            for (let i = 0; i < headers.length; i++) {
+                const myDiv = document.getElementById("divCheck");
+                const checkbox = document.createElement('input');
+                const label = document.createElement('label');
+                //dynamically creates the element for the user to select if a High value is good
+                checkbox.type = "checkbox";
+                checkbox.name = "chkHighLow";
+                checkbox.value = headers[i];
+                checkbox.id = `chkId${i}`;
+
+                label.htmlFor = `chkId${i}`;
+                label.textContent = headers[i];
+                label.name = 'labelCheck'
+
+                myDiv.appendChild(checkbox);
+                myDiv.appendChild(label);
+
+                checkbox.addEventListener('change', function () {
+                    if (this.checked) {
+                        highGood.push(headers[i]);
+                        const indexInHighBad = highBad.indexOf(headers[i]);
+                        if (indexInHighBad !== -1) {
+                            highBad.splice(indexInHighBad, 1);
+                        }
+                    } else {
+                        highBad.push(headers[i]);
+                        const indexInHighGood = highGood.indexOf(headers[i]);
+                        if (indexInHighGood !== -1) {
+                            highGood.splice(indexInHighGood, 1);
+                        }
+                    }
+                    document.getElementById("taHiLow").value = highGood
+                });
+            }
+        }
+
     </script>
 </body>
 
