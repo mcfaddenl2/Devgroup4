@@ -29,14 +29,7 @@
 </head>
 
 <body>
-    <h1>DevGroup4</h1>
-    <!-- File input to upload CSV or Excel files -->
-    <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
-    <pre id="csvData"></pre>
-    <!-- Textarea for displaying raw JSON data -->
-    <textarea name="" id="taResults" cols="100" rows="10"></textarea>
-    <br>
-
+    <h1>DevGroup 4</h1>
     <!-- Dropdown for selecting the display type -->
     <label for="fileType">Choose File Type:</label>
     <select name="fileType" id="fileTypes">
@@ -44,10 +37,28 @@
         <option value="Table"> Table</option>
         <option value="Gallery"> Gallery</option>
     </select>
+    <!-- Button for standardizing-->
+    <button id=" standardize" onclick="btnStandardizeOnclick()">Standardize All Numeric data</button>
+
+    <!--Dropdonw for standardizing option-->
+    <label for="fileType">Choose Standaridizing option:</label>
+    <select name="ddStandrdize" id="ddStardize">
+        <option value="0-10"> 0-10</option>
+        <option value="1-10"> 1-10</option>
+        <option value="0-1"> 0-1</option>
+        <option value="-1to1">-1 - 1</option>
+        <option value="Z-scores">Z-Scores</option>
+
+    </select>
+    <!-- File input to upload CSV or Excel files -->
+    <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
+    <pre id="csvData"></pre>
+    <!-- Textarea for displaying raw JSON data -->
+    <textarea name="" id="taResults" cols="100" rows="10"></textarea>
     <!-- Button to trigger data view -->
     <button id="btnView">click here to view the data</button>
     <!-- Div to display the output -->
-    <br>
+    <div id="output"></div>
     <label for="txtPk">Available key to identify an entry</label>
     <textarea name="txtPk" id="txtPk" cols="30" rows="2" disabled="true"></textarea>
     <button id="btnPK">Click here to find primary key</button>
@@ -65,25 +76,37 @@
         </select>
 
     </Form>
+    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
     <br>
-
+    <!--///////////////////////////////////////-->
     <button id="btnHiLo" onclick="hiLow()">Click here to identify what good data is</button>
     <div id="divGoodHiLow" style="display: none;">
         <p>Check the box if a high value is considered good: </p>
         <textarea name="textareaHiLow" id="taHiLow" cols="50" rows="4"></textarea>
         <div id="divCheck"></div>
     </div>
-    <br>
-    <br>
-    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
-    <br>
-    <div id="output">
-    </div>
+
+    <!-- Dropdown for selecting the column to sort -->
+    <label for="sortColumn">Sort By:</label>
+    <select id="sortColumn">
+        <option value="">Choose Column to Sort</option>
+    </select>
+
+    <!-- Dropdown for selecting sorting order -->
+    <label for="sortOrder">Order:</label>
+    <select id="sortOrder">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+    </select>
+
+    <!-- Button to trigger sort -->
+    <button id="btnSort">Sort</button>
+
+
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
-
         document.getElementById("selectedOutput").disabled = true;
         document.getElementById("selectedInput").disabled = true;
         // Variable to hold the parsed data from the uploaded file
@@ -92,15 +115,16 @@
         const outputDiv = document.getElementById('output');
         //2D array to store the selected input and output columns
         const selectedColumns = { input: [], output: [] };
-        let table;
-
 
         // Event listener for the "View Data" button
         document.getElementById("btnView").addEventListener('click', function () {
-            //enable 
+            //enable
+
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
+
+
 
             // Display data according to the selected type
             switch (specifiedView) {
@@ -110,7 +134,7 @@
                     break;
                 case 'Table':
                     // Display as HTML Table
-                    table = document.createElement('table');
+                    const table = document.createElement('table');
                     for (let row of myArray) {
                         let newRow = table.insertRow();
                         for (let cell of row) {
@@ -154,6 +178,8 @@
                         populateDropdown("selectedInput", myArray[0]);
                         populateDropdown("selectedOutput", myArray[0]);
                     }
+
+                    populateSortDropdown(myArray[0]);
                     // Update the textarea with the parsed data
                     document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
@@ -259,6 +285,112 @@
                 return "No primary key found";
             }
         }
+
+        function populateSortDropdown(data) {
+            const dropdown = document.getElementById("sortColumn");
+            dropdown.innerHTML = "<option value=''>Choose Column to Sort</option>";
+            data.forEach((item, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.text = item;
+                dropdown.add(option);
+            });
+            dropdown.disabled = false;  // Enable the dropdown
+        }
+
+        document.getElementById("btnSort").addEventListener('click', function () {
+            // Get the selected column index from the dropdown
+            const sortIndex = parseInt(document.getElementById("sortColumn").value);
+
+            // Get the selected sorting order from the dropdown
+            const sortOrder = document.getElementById("sortOrder").value;
+
+            // Check if a column has been selected
+            if (isNaN(sortIndex)) {
+                alert("Please select a column to sort.");
+                return;
+            }
+
+            // Copy the header row
+            const header = myArray[0];
+
+            // Copy the data without the header row for sorting
+            let sortableArray = myArray.slice(1);
+
+            // Sort the array based on the selected column and order
+            sortableArray.sort((a, b) => {
+                const itemA = a[sortIndex];
+                const itemB = b[sortIndex];
+                if (itemA < itemB) {
+                    return sortOrder === "asc" ? -1 : 1;
+                }
+                if (itemA > itemB) {
+                    return sortOrder === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
+
+            // Reconstruct the original array with the sorted data
+            myArray = [header].concat(sortableArray);
+
+            // Re-render the data
+            // (Since we don't have a reusable function to render the data, I'm triggering a click event on 'btnView')
+            document.getElementById("btnView").click();
+        });
+
+
+        //Function for standaridizing btn
+        function btnStandardizeOnclick() {
+            const selectedOption = document.getElementById('ddStardize').value;
+            const header = myArray[0];
+
+            let standardizable = myArray.slice(1);
+            let numericColumns = [];
+
+            // Determine which columns are numeric
+            for (let j = 1; j < standardizable[0].length; j++) {
+                const isNumericColumn = standardizable.every(row => !isNaN(parseFloat(row[j])));
+                if (isNumericColumn) {
+                    numericColumns.push(j);
+                }
+            }
+
+            for (let j of numericColumns) {
+                let column = standardizable.map(row => parseFloat(row[j]));
+                let min = Math.min(...column);
+                let max = Math.max(...column);
+                const mean = column.reduce((sum, value) => sum + value, 0) / column.length;
+                const squaredDifferences = column.map(value => (value - mean) ** 2);
+                const variance = squaredDifferences.reduce((sum, value) => sum + value, 0) / column.length;
+                const stdDev = Math.sqrt(variance);
+                for (let i = 0; i < standardizable.length; i++) {
+
+                    switch (selectedOption) {
+                        case '0-10':
+                            standardizable[i][j] = (((standardizable[i][j] - min) / (max - min)) * 10).toFixed(2);
+                            break;
+                        case '1-10':
+                            standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
+                            break;
+                        case '0-1':
+                            standardizable[i][j] = ((standardizable[i][j] - min) / (max - min)).toFixed(2);
+                            break;
+                        case '-1to1':
+                            standardizable[i][j] = (-1 + ((standardizable[i][j] - min) / (max - min) * 2)).toFixed(2);
+                            break;
+                        case 'Z-scores':
+                            standardizable[i][j] = ((standardizable[i][j] - mean) / stdDev).toFixed(2);
+                            break;
+                    }
+                }
+
+            }
+            //standardizable = standardizable.map((row, rowIndex) => row.map((value, colIndex) => colIndex === j ? standardizedValue : value));
+
+            myArray = [header].concat(standardizable);
+            document.getElementById("btnView").click();
+        }
+
         //button to remove everything 
         function clearEverything() {
             document.getElementById("taResults").value = "";
@@ -267,11 +399,10 @@
             document.getElementById("taHiLow").value = " "
             document.getElementById('divCheck').innerHTML = " ";
             document.getElementById("divGoodHiLow").style.display = "none"
-
         }
 
-        //high equals good or bad - user input needed
-        function hiLow() {
+         //high equals good or bad - user input needed
+         function hiLow() {
             document.getElementById("divGoodHiLow").style.display = "block"
             const headers = myArray[0]
             const highGood = [];
@@ -312,7 +443,7 @@
             }
         }
 
-
+       
     </script>
 </body>
 
