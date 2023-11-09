@@ -53,8 +53,6 @@
     <!-- File input to upload CSV or Excel files -->
     <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
     <pre id="csvData"></pre>
-    <!-- Textarea for displaying raw JSON data -->
-    <textarea name="" id="taResults" cols="100" rows="10"></textarea>
     <!-- Button to trigger data view -->
     <button id="btnView">click here to view the data</button>
     <!-- Div to display the output -->
@@ -102,7 +100,7 @@
     <!-- Button to trigger sort -->
     <button id="btnSort">Sort</button>
 
-    <div id="output"></div>
+
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
@@ -181,7 +179,6 @@
 
                     populateSortDropdown(myArray[0]);
                     // Update the textarea with the parsed data
-                    document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
                 // Read the file accordingly
                 if (file.name.endsWith('.csv')) {
@@ -398,7 +395,7 @@
         }
 
         function clearEverything() {
-            document.getElementById("taResults").value = "";
+           
             outputDiv.innerHTML = "";
             myArray = [];
             document.getElementById('txtPk').value = " ";
