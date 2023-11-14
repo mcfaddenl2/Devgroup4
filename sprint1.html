@@ -37,6 +37,36 @@
             background-color: #FF0000;
             /* Red */
         }
+
+        /* Define CSS classes for the fading color scale */
+        .fading-color-scale-0 {
+            background-color: #FF0000;
+            /* Red */
+        }
+
+        .fading-color-scale-25 {
+            background-color: #FF8800;
+            /* Orange */
+        }
+
+        .fading-color-scale-50 {
+            background-color: #FFFF00;
+            /* Yellow */
+        }
+
+        .fading-color-scale-75 {
+            background-color: #88FF00;
+            /* Green-Yellow */
+        }
+
+        .fading-color-scale-100 {
+            background-color: #00FF00;
+            /* Green */
+        }
+
+        .white-outline {
+            border: 2px solid white;
+        }
     </style>
 </head>
 
@@ -433,7 +463,7 @@
 
         }
 
-        function applyColorScaleToColumn(columnIndex, thresholds) {
+        function applyFadingColorScaleToColumn(columnIndex) {
             const table = document.querySelector('table');
             const rows = table.querySelectorAll('tr');
 
@@ -452,36 +482,63 @@
             cellValues.sort((a, b) => a.value - b.value);
 
             const totalCells = cellValues.length;
-            const best10PercentIndex = Math.floor(totalCells * 0.1);
-            const worst10PercentIndex = Math.floor(totalCells * 0.9);
 
             for (let i = 0; i < cellValues.length; i++) {
                 const cellData = cellValues[i];
+                const segment = Math.floor((i / totalCells) * 5); // Divide into 5 segments
 
-                if (i < best10PercentIndex) {
-                    // Highlight the best 10% of cells
-                    cellData.row.classList.add('best-10-percent');
-                    cellData.row.classList.remove('worst-10-percent');
-                } else if (i >= worst10PercentIndex) {
-                    // Highlight the worst 10% of cells
-                    cellData.row.classList.add('worst-10-percent');
-                    cellData.row.classList.remove('best-10-percent');
+                // Apply the corresponding fading color class based on the segment
+                switch (segment) {
+                    case 0:
+                        cellData.row.classList.add('fading-color-scale-0');
+                        cellData.row.classList.remove('fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-75', 'fading-color-scale-100');
+                        break;
+                    case 1:
+                        cellData.row.classList.add('fading-color-scale-25');
+                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-50', 'fading-color-scale-75', 'fading-color-scale-100');
+                        break;
+                    case 2:
+                        cellData.row.classList.add('fading-color-scale-50');
+                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-75', 'fading-color-scale-100');
+                        break;
+                    case 3:
+                        cellData.row.classList.add('fading-color-scale-75');
+                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-100');
+                        break;
+                    case 4:
+                        cellData.row.classList.add('fading-color-scale-100');
+                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-75');
+                        break;
+                }
+
+                // Add a white outline to cells in the worst 10% and best 10%
+                if (segment === 0 || segment === 4) {
+                    cellData.row.classList.add('white-outline');
                 } else {
-                    // Remove any previous highlighting
-                    cellData.row.classList.remove('best-10-percent', 'worst-10-percent');
+                    cellData.row.classList.remove('white-outline');
                 }
             }
         }
 
-        function removeColorScaleFromColumn(columnIndex) {
+
+        function removeFadingColorScaleFromColumn(columnIndex) {
             const table = document.querySelector('table');
             const rows = table.querySelectorAll('tr');
 
             for (let i = 1; i < rows.length; i++) {
                 const cell = rows[i].cells[columnIndex];
-                cell.classList.remove('best-10-percent', 'worst-10-percent');
+                cell.classList.remove(
+                    'fading-color-scale-0',
+                    'fading-color-scale-25',
+                    'fading-color-scale-50',
+                    'fading-color-scale-75',
+                    'fading-color-scale-100',
+                    'white-outline' // Remove the white outline class as well
+                );
             }
         }
+
+
 
         function hiLow() {
             document.getElementById("divGoodHiLow").style.display = "block";
@@ -489,30 +546,7 @@
             const highGood = [];
             const highBad = [];
 
-            // Calculate the threshold values for the best and worst 10% of cells
-            const columnThresholds = {};
-
             for (let i = 1; i < headers.length; i++) {
-                const columnValues = myArray.slice(1).map(row => parseFloat(row[i]));
-
-                // Sort the column values
-                columnValues.sort((a, b) => a - b);
-
-                // Calculate the threshold indices for the best and worst 10%
-                const totalCells = columnValues.length;
-                const best10PercentIndex = Math.floor(totalCells * 0.1);
-                const worst10PercentIndex = Math.floor(totalCells * 0.9);
-
-                // Get the threshold values
-                const best10PercentThreshold = columnValues[best10PercentIndex];
-                const worst10PercentThreshold = columnValues[worst10PercentIndex];
-
-                // Store the thresholds for this column
-                columnThresholds[i] = {
-                    best: best10PercentThreshold,
-                    worst: worst10PercentThreshold
-                };
-
                 const myDiv = document.getElementById("divCheck");
                 const checkbox = document.createElement('input');
                 const label = document.createElement('label');
@@ -544,17 +578,18 @@
                         }
                     }
 
-                    // Apply the color scale to the cells of this column if it's considered high values good
+                    // Apply the fading color scale to the cells of this column if it's considered high values good
                     if (highGood.includes(headers[i])) {
-                        applyColorScaleToColumn(i, columnThresholds[i]);
+                        applyFadingColorScaleToColumn(i);
                     } else {
-                        removeColorScaleFromColumn(i);
+                        removeFadingColorScaleFromColumn(i);
                     }
 
                     document.getElementById("taHiLow").value = highGood.join(', ');
                 });
             }
         }
+
 
 
 
