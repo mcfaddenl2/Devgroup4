@@ -5,12 +5,42 @@
     <title>Sprint 1</title>
     <!-- CSS for styling table and gallery items -->
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input,
+        select {
+            margin-bottom: 10px;
+        }
+
+        button {
+            margin-bottom: 15px;
+        }
+
+        textarea {
+            margin-bottom: 10px;
+        }
+
+        .outputDiv {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 10000px;
+            overflow-y: auto;
+        }
+
         table {
             background-color: lightgray;
             border-collapse: collapse;
             width: 100%;
             border: 2px solid black;
-            /* Add this line to set the border around the table */
         }
 
         td {
@@ -25,63 +55,80 @@
             display: inline-block;
             margin: 5px;
         }
+
+        /* Highlight the best 10% of cells in green */
+        .best-10-percent {
+            background-color: #00FF00;
+            /* Green */
+        }
+
+        /* Highlight the worst 10% of cells in red */
+        .worst-10-percent {
+            background-color: #FF0000;
+            /* Red */
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+
+
     <!-- Dropdown for selecting the display type -->
-    <label for="fileType">Choose File Type:</label>
-    <select name="fileType" id="fileTypes">
-        <option value="Raw"> Raw</option>
-        <option value="Table"> Table</option>
-        <option value="Gallery"> Gallery</option>
-    </select>
-    <!-- Button for standardizing-->
-    <button id=" standardize" onclick="btnStandardizeOnclick()">Standardize All Numeric data</button>
-
-    <!--Dropdonw for standardizing option-->
-    <label for="fileType">Choose Standaridizing option:</label>
-    <select name="ddStandrdize" id="ddStardize">
-        <option value="0-10"> 0-10</option>
-        <option value="1-10"> 1-10</option>
-        <option value="0-1"> 0-1</option>
-        <option value="-1to1">-1 - 1</option>
-        <option value="Z-scores">Z-Scores</option>
-
+    <label for="fileTypes">Choose File Type:</label>
+    <select name="fileTypes" id="fileTypes">
+        <option value="Raw">Raw</option>
+        <option value="Table">Table</option>
+        <option value="Gallery">Gallery</option>
     </select>
     <!-- File input to upload CSV or Excel files -->
     <input type="file" id="inputFile" accept=".csv, .xlsx, .xls">
     <pre id="csvData"></pre>
+
     <!-- Button to trigger data view -->
-    <button id="btnView">click here to view the data</button>
-    <!-- Div to display the output -->
-   
-    <label for="txtPk">Available key to identify an entry</label>
+    <button id="btnView" onclick="btnViewOnclick()">Click Here to View the Data</button>
+
+
+    <!-- Dropdown for standardizing option -->
+    <label for="ddStardize">Choose Standardizing Option:</label>
+    <select name="ddStardize" id="ddStardize">
+        <option value="0-10">0-10</option>
+        <option value="1-10">1-10</option>
+        <option value="0-1">0-1</option>
+        <option value="-1to1">-1 to 1</option>
+        <option value="Z-scores">Z-Scores</option>
+    </select>
+    <!-- Button for standardizing -->
+    <button id="standardize" onclick="btnStandardizeOnclick()">Standardize All Numeric Data</button>
+
+    <!-- Button for standardizing by pinning outliers -->
+    <button id="standardizeByOutliers" onclick="btnStandardizeOnclickPinned()">Standardize All Numeric Data by Pinning
+        Outliers</button>
+
+
+    <!-- Label for available key to identify an entry -->
+    <label for="txtPk">Available Key to Identify an Entry</label>
     <textarea name="txtPk" id="txtPk" cols="30" rows="2" disabled="true"></textarea>
-    <button id="btnPK">Click here to find primary key</button>
+    <button id="btnPK" onclick="findPrimaryKey()">Click Here to Find Primary Key</button>
 
-    <!-- Dropdown for input and output -->
-    <Form>
-        <select id="selectedInput">
-            <option>Choose Input Columns </option>
-        </select>
-    </Form>
+    <button id="btnClear" onclick="clearEverything()">Click Here to Clear Out the Information</button>
 
-    <Form>
-        <select id="selectedOutput">
-            <option>Choose Output Columns </option>
-        </select>
-
-    </Form>
-    <button id="btnClear" onclick="clearEverything()">Click Here to Clear out the information</button>
     <br>
-   
-    <button id="btnHiLo" onclick="hiLow()">Click here to identify what good data is</button>
+
+    <!-- Identify what good data is -->
+    <button id="btnHiLo" onclick="hiLow()">Click Here to Identify What Good Data Is</button>
     <div id="divGoodHiLow" style="display: none;">
-        <p>Check the box if a high value is considered good: </p>
+        <p>Check the box if a high value is considered good:</p>
         <textarea name="textareaHiLow" id="taHiLow" cols="50" rows="4"></textarea>
         <div id="divCheck"></div>
+    </div>
+
+    <!-- Input/Output Configuration -->
+    <button id="btnInputOutput" onclick="btnInputOutputOnclick()">Click Here to Pick Input and Output</button>
+    <div id="divInput" style="display: none;">
+        <p>Check the box if it is considered input (the ones you didn't pick are automatically considered as output)</p>
+        <textarea name="textareaInputOutput" id="taInput" cols="50" rows="4"></textarea>
+        <div id="divCheck1"></div>
     </div>
 
     <!-- Dropdown for selecting the column to sort -->
@@ -98,8 +145,31 @@
     </select>
 
     <!-- Button to trigger sort -->
-    <button id="btnSort">Sort</button>
-     <div id="divPlot" style="display: none;">
+    <button id="btnSort" onclick="sortData()">Sort</button>
+
+    <!-- Input field for the user to enter the number of rows to display -->
+    <label for="topNInput">Enter the number of rows for input:</label>
+    <input type="number" class="topNInput" placeholder="Enter number of rows">
+
+    <!-- Button to trigger the display of the top N rows for input -->
+    <button class="btnDisplayTopN" onclick="btnDisplayTopNOnclick('input')">Display Top N Rows for Input</button>
+
+    <!-- Output field for the user to enter the number of rows to display -->
+    <label for="topNOutput">Enter the number of rows for output:</label>
+    <input type="number" class="topNOutput" placeholder="Enter number of rows">
+
+    <!-- Button to trigger the display of the top N rows for output -->
+    <button class="btnDisplayTopN" onclick="btnDisplayTopNOnclick('output')">Display Top N Rows for Output</button>
+
+    <!-- Output area to display the top N rows -->
+    <div class="outputDiv"></div>
+
+    <!-- Div to display the output -->
+    <div id="output" class="outputDiv"></div>
+    <div id="divPlot" style="display: none;">
+        <div id="divScatter">
+            <canvas id="scatterPlot"></canvas>
+        </div>
         <label for="selX">x-axis: </label>
         <select name="xLabels" id="selX">
             <option>Choose x-axis </option>
@@ -111,26 +181,20 @@
         </select>
         <button id="btnGenScatter">Generate Scatter plot</button>
         <br>
-         <div id="divScatter">
-            <canvas id="scatterPlot"></canvas>
-        </div>
     </div>
     <br>
-    <button id="btnPopXandY">Populate dropdowns</button>
+    <button id="btnPopXandY">click here to select what you want on the x and y axis</button>
     <br>
-
-    <br>
-    <div id="output"></div>
 
 
     <!-- Including xlsx library for handling Excel files -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
-        document.getElementById("selectedOutput").disabled = true;
-        document.getElementById("selectedInput").disabled = true;
+
         // Variable to hold the parsed data from the uploaded file
         let myArray;
+        //global variables for the scatter plot
         let xAxisVal
         let yAxisVal
         let xValues = [];
@@ -140,15 +204,15 @@
         //2D array to store the selected input and output columns
         const selectedColumns = { input: [], output: [] };
 
-        // Event listener for the "View Data" button
-        document.getElementById("btnView").addEventListener('click', function () {
-            //enable
+        //Array to store Inputs and Outputs
+        let aInput = [];
+        let aOutput = [];
 
+
+        function displayDataFromArray(myArray) {
             // Get the selected display type from the dropdown
             const selectElement = document.querySelector('#fileTypes');
             const specifiedView = selectElement.value;
-
-
 
             // Display data according to the selected type
             switch (specifiedView) {
@@ -179,7 +243,12 @@
                     outputDiv.innerHTML = galleryHTML;
                     break;
             }
-        });
+        }
+        // Event listener for the "View Data" button
+        function btnViewOnclick() {
+            populateSortDropdown(myArray[0]);
+            displayDataFromArray(myArray);
+        }
 
         // Event listener for file input change
         document.getElementById('inputFile').addEventListener('change', function (event) {
@@ -191,20 +260,19 @@
                     // Handle CSV files
                     if (file.name.endsWith('.csv')) {
                         myArray = csvToArray(fileData);
-                        populateDropdown("selectedInput", myArray[0]);
-                        populateDropdown("selectedOutput", myArray[0]);
+
                     }
                     // Handle Excel files
                     else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                         const workbook = XLSX.read(fileData, { type: 'binary' });
                         const firstSheet = workbook.SheetNames[0];
                         myArray = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
-                        populateDropdown("selectedInput", myArray[0]);
-                        populateDropdown("selectedOutput", myArray[0]);
+
                     }
 
-                    populateSortDropdown(myArray[0]);
-                    // Update the textarea with the parsed data
+
+
+                    //document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
                 // Read the file accordingly
                 if (file.name.endsWith('.csv')) {
@@ -214,52 +282,7 @@
                 }
             }
         });//end event Listener for inputFile
-        //Event listener for input dropdown change
-        document.getElementById('selectedInput').addEventListener('change', function () {
-            const selectedInputIndex = this.value;
-            if (selectedInputIndex !== '') {
-                if (selectedColumns.output.includes(selectedInputIndex)) {
-                    // column is already an output; reset the input dropdown
-                    this.value = '';
-                    alert("This column is already selected as an output.");
-                }
-                else {
-                    selectedColumns.input.push(selectedInputIndex);
-                    document.getElementById('selectedInput').option[selectedInputIndex].disable = true;
-                    // Disable the selected input in the output dropdown
-                    for (let i = 0; i < document.getElementById('selectedOutput').options.length; i++) {
-                        if (i == selectedInputIndex) {
-                            document.getElementById('selectedOutput').options[i].disabled = true;
-                        } else {
-                            document.getElementById('selectedOutput').options[i].disabled = false;
-                        }
-                    }
-                }
-            }
 
-        });//end event Listner for selectedInput
-        document.getElementById('selectedOutput').addEventListener('change', function () {
-            const selectedOutputIndex = this.value;
-            if (selectedOutputIndex !== '') {
-                if (selectedColumns.input.includes(selectedOutputIndex)) {
-                    // The selected column is already an input; reset the output dropdown
-                    this.value = '';
-                    alert("This column is already selected as an input.");
-                }
-                else {
-                    selectedColumns.output.push(selectedOutputIndex);
-                    document.getElementById('selectedOutput').options[selectedOutputIndex].disabled = true;
-                    // Disable the selected output in the input dropdown
-                    for (let i = 0; i < document.getElementById('selectedInput').options.length; i++) {
-                        if (i == selectedOutputIndex) {
-                            document.getElementById('selectedInput').options[i].disabled = true;
-                        } else {
-                            document.getElementById('selectedInput').options[i].disabled = false;
-                        }
-                    }
-                }
-            }
-        });
         // Function to convert CSV data to an array
         function csvToArray(csvData) {
             const rows = csvData.split('\n');
@@ -357,8 +380,7 @@
             myArray = [header].concat(sortableArray);
 
             // Re-render the data
-            // (Since we don't have a reusable function to render the data, I'm triggering a click event on 'btnView')
-            document.getElementById("btnView").click();
+            displayDataFromArray(myArray);
         });
 
 
@@ -366,7 +388,7 @@
         function btnStandardizeOnclick() {
             const selectedOption = document.getElementById('ddStardize').value;
             const header = myArray[0];
-
+            let myArrayStandardized;
             let standardizable = myArray.slice(1);
             let numericColumns = [];
 
@@ -416,30 +438,142 @@
 
 
 
-            myArray = [header].concat(standardizable);
-            document.getElementById("btnView").click();
+            myArrayStandardized = [header].concat(standardizable);
+            displayDataFromArray(myArrayStandardized);
+
+        }
+        function btnStandardizeOnclickPinned() {
+
+            const selectedOption = document.getElementById('ddStardize').value;
+            const header = myArray[0];
+            let myArrayPinned;
+            let standardizable = myArray.slice(1);
+            let numericColumns = [];
+
+
+            // Determine which columns are numeric
+            for (let j = 1; j < standardizable[0].length; j++) {
+                const isNumericColumn = standardizable.every(row => !isNaN(parseFloat(row[j])));
+                if (isNumericColumn) {
+                    numericColumns.push(j);
+                }
+            }
+
+            for (let j of numericColumns) {
+                let column = standardizable.map(row => parseFloat(row[j]));
+                let min = Math.min(...column);
+                let max = Math.max(...column);
+                // Identify outliers using Z-score
+                const meanValue = column.reduce((sum, value) => sum + value, 0) / column.length;
+                const zScores = column.map(value => (value - mean(column)) / stdDev(column));
+                const outliers = identifyOutliers(zScores);
+
+                // Process outliers based on selected method
+                for (let i = 0; i < standardizable.length; i++) {
+                    if (!outliers.includes(i)) {
+                        switch (selectedOption) {
+                            case '0-10':
+                                standardizable[i][j] = (((standardizable[i][j] - min) / (max - min) * 10)).toFixed(2);
+                                break;
+                            case '1-10':
+                                standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
+                                break;
+                            case '0-1':
+                                standardizable[i][j] = ((standardizable[i][j] - min) / (max - min)).toFixed(2);
+                                break;
+                            case '-1to1':
+                                standardizable[i][j] = (-1 + ((standardizable[i][j] - min) / (max - min) * 2)).toFixed(2);
+                                break;
+                            case 'Z-scores':
+                                standardizable[i][j] = ((standardizable[i][j] - mean(column)) / stdDev(column)).toFixed(2);
+                                break;
+                        }
+                    }
+                }
+            }
+
+            // Standardize the remaining columns
+            myArrayPinned = [header].concat(standardizable);
+            displayDataFromArray(myArrayPinned);
+        }
+        //function to calculate mean
+        function mean(column) {
+            return column.reduce((sum, value) => sum + value, 0) / column.length;
         }
 
-        function clearEverything() {
+        // function to calculate standard deviation
+        function stdDev(column) {
+            const meanValue = column.reduce((sum, value) => sum + value, 0) / column.length;
+            const squaredDifferences = column.map(value => (value - meanValue) ** 2);
+            const variance = squaredDifferences.reduce((sum, value) => sum + value, 0) / column.length;
+            return Math.sqrt(variance);
+        }
 
+        // function to identify outliers (simple Z-score method)
+        function identifyOutliers(zScores) {
+            const threshold = 3;
+            return zScores.reduce((outliers, zScore, index) => {
+                if (Math.abs(zScore) > threshold) {
+                    outliers.push(index);
+                }
+                return outliers;
+            }, []);
+        }
+
+
+        function clearEverything() {
+            //document.getElementById("taResults").value = "";
             outputDiv.innerHTML = "";
             myArray = [];
+            aInput = [];
+            aOutput = [];
+            xAxisVal = 0
+            yAxisVal = 0
+            xValues = [];
+            yValues = [];
             document.getElementById('txtPk').value = " ";
             document.getElementById("taHiLow").value = " "
             document.getElementById('divCheck').innerHTML = " ";
             document.getElementById('txtPk').value = " ";
+            document.getElementById('taInputConfig').value = " ";
+            document.getElementById('');
+           
 
         }
         function hiLow() {
-            document.getElementById("divGoodHiLow").style.display = "block"
-            const headers = myArray[0]
+            document.getElementById("divGoodHiLow").style.display = "block";
+            const headers = myArray[0];
             const highGood = [];
             const highBad = [];
-            for (let i = 0; i < headers.length; i++) {
+
+            // Calculate the threshold values for the best and worst 10% of cells
+            const columnThresholds = {};
+
+            for (let i = 1; i < headers.length; i++) {
+                const columnValues = myArray.slice(1).map(row => parseFloat(row[i]));
+
+                // Sort the column values
+                columnValues.sort((a, b) => a - b);
+
+                // Calculate the threshold indices for the best and worst 10%
+                const totalCells = columnValues.length;
+                const best10PercentIndex = Math.floor(totalCells * 0.1);
+                const worst10PercentIndex = Math.floor(totalCells * 0.9);
+
+                // Get the threshold values
+                const best10PercentThreshold = columnValues[best10PercentIndex];
+                const worst10PercentThreshold = columnValues[worst10PercentIndex];
+
+                // Store the thresholds for this column
+                columnThresholds[i] = {
+                    best: best10PercentThreshold,
+                    worst: worst10PercentThreshold
+                };
+
                 const myDiv = document.getElementById("divCheck");
                 const checkbox = document.createElement('input');
                 const label = document.createElement('label');
-                //dynamically creates the element for the user to select if a High value is good
+
                 checkbox.type = "checkbox";
                 checkbox.name = "chkHighLow";
                 checkbox.value = headers[i];
@@ -447,7 +581,7 @@
 
                 label.htmlFor = `chkId${i}`;
                 label.textContent = headers[i];
-                label.name = 'labelCheck'
+                label.name = 'labelCheck';
 
                 myDiv.appendChild(checkbox);
                 myDiv.appendChild(label);
@@ -466,10 +600,140 @@
                             highGood.splice(indexInHighGood, 1);
                         }
                     }
-                    document.getElementById("taHiLow").value = highGood
+
+                    // Apply the color scale to the cells of this column if it's considered high values good
+                    if (highGood.includes(headers[i])) {
+                        applyColorScaleToColumn(i, columnThresholds[i]);
+                    } else {
+                        removeColorScaleFromColumn(i);
+                    }
+
+                    document.getElementById("taHiLow").value = highGood.join(', ');
                 });
             }
         }
+
+        //function to configure input/output
+        function btnInputOutputOnclick() {
+            // Display the input div
+            const inputDiv = document.getElementById("divInput");
+            inputDiv.style.display = "block";
+
+            const headers = myArray[0];
+            const textareaInput = document.getElementById("taInput");
+            const divCheck = document.getElementById("divCheck1");
+
+            aInput = [];
+            aOutput = [];
+
+            for (let i = 0; i < headers.length; i++) {
+                const checkbox = document.createElement('input');
+                const label = document.createElement('label');
+
+                // Dynamically create the element for the user to configure input/output
+                checkbox.type = "checkbox";
+                checkbox.name = "chkInputOutput";
+                checkbox.value = headers[i];
+                checkbox.id = `chkInputOutputId${i}`;
+
+                label.htmlFor = `chkInputOutputId${i}`;
+                label.textContent = headers[i];
+                label.name = 'labelInputOutput';
+
+                divCheck.appendChild(checkbox);
+                divCheck.appendChild(label);
+
+                checkbox.addEventListener('change', function () {
+                    if (this.checked) {
+
+
+                        aInput.push(headers[i]);
+                        const indexInOutput = aOutput.indexOf(headers[i]);
+                        if (indexInOutput !== -1) {
+                            aOutput.splice(indexInOutput, 1);
+                        }
+
+
+                    } else {
+                        aOutput.push(headers[i]);
+                        const indexInInput = aInput.indexOf(headers[i]);
+                        if (indexInInput !== -1) {
+                            aInput.splice(indexInInput, 1);
+                        }
+                    }
+                    textareaInput.value = aInput.join('\n');
+                });
+            }
+        }
+
+        function btnDisplayTopNOnclick(target) {
+            // Retrieve the user input and target output div
+            const topNInput = document.querySelector(`.${target === 'input' ? 'topNInput' : 'topNOutput'}`).value;
+            const outputDiv = document.querySelector(`.${target === 'input' ? 'outputDiv' : 'outputDiv'}-${target}`);
+            const header = myArray[0];
+            let myArraySubset;
+
+
+            const n = parseInt(topNInput, 10);
+            if (!isNaN(n) && n > 0) {
+                myArraySubset = [header].concat(myArray.slice(1, n + 1));
+                outputDiv.innerHTML = "";
+                displayDataFromArray(myArraySubset);
+            } else {
+
+                console.error('Invalid input. Please enter a positive integer.');
+            }
+        }
+        function applyColorScaleToColumn(columnIndex, thresholds) {
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tr');
+
+            const cellValues = [];
+
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                const cellValue = parseFloat(row.cells[columnIndex].textContent);
+
+                if (!isNaN(cellValue)) {
+                    cellValues.push({ value: cellValue, row: row.cells[columnIndex] });
+                }
+            }
+
+            // Sort the cell values
+            cellValues.sort((a, b) => a.value - b.value);
+
+            const totalCells = cellValues.length;
+            const best10PercentIndex = Math.floor(totalCells * 0.1);
+            const worst10PercentIndex = Math.floor(totalCells * 0.9);
+
+            for (let i = 0; i < cellValues.length; i++) {
+                const cellData = cellValues[i];
+
+                if (i < best10PercentIndex) {
+                    // Highlight the best 10% of cells
+                    cellData.row.classList.add('best-10-percent');
+                    cellData.row.classList.remove('worst-10-percent');
+                } else if (i >= worst10PercentIndex) {
+                    // Highlight the worst 10% of cells
+                    cellData.row.classList.add('worst-10-percent');
+                    cellData.row.classList.remove('best-10-percent');
+                } else {
+                    // Remove any previous highlighting
+                    cellData.row.classList.remove('best-10-percent', 'worst-10-percent');
+                }
+            }
+        }
+
+        function removeColorScaleFromColumn(columnIndex) {
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const cell = rows[i].cells[columnIndex];
+                cell.classList.remove('best-10-percent', 'worst-10-percent');
+            }
+        }
+
         document.getElementById("btnPopXandY").addEventListener('click', function () {
             document.getElementById('divPlot').style.display = "block"
             const xAxisSel = document.getElementById("selX");
@@ -527,8 +791,8 @@
                     datasets: [{
                         label: 'Scatter Plot',
                         data: xValues.map((x, index) => ({ x, y: yValues[index] })),
-                        backgroundColor: 'blue', 
-                        pointRadius: 4, 
+                        backgroundColor: 'blue',
+                        pointRadius: 4,
                     }]
                 },
                 options: {
@@ -536,21 +800,22 @@
                         x: {
                             type: 'linear',
                             position: 'bottom',
-                            min: minX - (minX*.25),
-                            max: maxX + maxX*.25,
+                            min: minX - (minX * .25),
+                            max: maxX + maxX * .25,
                             stepSize: maxX / 10,
                         },
                         y: {
                             type: 'linear',
                             position: 'left',
-                            min: minY - minY*.25,
-                            max: maxY + maxY*.25,
+                            min: minY - minY * .25,
+                            max: maxY + maxY * .25,
                             stepSize: maxY / 10,
                         }
                     }
                 }
             });
         });
+
 
     </script>
 </body>
