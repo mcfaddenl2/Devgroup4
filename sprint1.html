@@ -163,6 +163,28 @@
     <!-- Button to trigger the display of the top N rows for output -->
     <button class="btnDisplayTopN" onclick="btnDisplayTopNOnclick('output')">Display Top N Rows for Output</button>
 
+        <br>
+    <!--to view the scatter plot and edit the x and y coordinates-->
+    <div id="divPlot" style="display: none;" class="outputDiv">
+        <div id="divScatter">
+            <canvas id="scatterPlot"></canvas>
+        </div>
+        <label for="selX">x-axis: </label>
+        <select name="xLabels" id="selX">
+            <option>Choose x-axis </option>
+        </select>
+
+        <br>
+        <label for="selY">y-axis: </label>
+        <select name="yLabels" id="selY">
+            <option>Choose y-axis </option>
+        </select>
+        <button id="btnGenScatter">Generate Scatter plot</button>
+        <br>
+    </div>
+    <br>
+
+    
     <!-- Output area to display the top N rows -->
     <div class="outputDiv"></div>
 
