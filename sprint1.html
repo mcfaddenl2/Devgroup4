@@ -15,7 +15,8 @@
             margin-bottom: 5px;
         }
 
-        input, select {
+        input,
+        select {
             margin-bottom: 10px;
         }
 
@@ -54,6 +55,7 @@
             display: inline-block;
             margin: 5px;
         }
+
         /* Highlight the best 10% of cells in green */
         .best-10-percent {
             background-color: #00FF00;
@@ -65,7 +67,8 @@
             background-color: #FF0000;
             /* Red */
         }
- /* Define CSS classes for the fading color scale */
+
+        /* Define CSS classes for the fading color scale */
         .fading-color-scale-0 {
             background-color: #FF0000;
             /* Red */
@@ -129,7 +132,8 @@
     <button id="standardize" onclick="btnStandardizeOnclick()">Standardize All Numeric Data</button>
 
     <!-- Button for standardizing by pinning outliers -->
-    <button id="standardizeByOutliers" onclick="btnStandardizeOnclickPinned()">Standardize All Numeric Data by Pinning Outliers</button>
+    <button id="standardizeByOutliers" onclick="btnStandardizeOnclickPinned()">Standardize All Numeric Data by Pinning
+        Outliers</button>
 
 
 
@@ -142,7 +146,7 @@
 
     <button id="btnClear" onclick="clearEverything()">Click Here to Clear Out the Information</button>
 
-     <br>
+    <br>
     <button id="btnPopXandY">Click Here to View the Scatter Plot</button>
     <br>
 
@@ -193,7 +197,7 @@
     <!-- Button to trigger the display of the top N rows for output -->
     <button class="btnDisplayTopN" onclick="btnDisplayTopNOnclick('output')">Display Top N Rows for Output</button>
 
-        <br>
+    <br>
     <!--to view the scatter plot and edit the x and y coordinates-->
     <div id="divPlot" style="display: none;" class="outputDiv">
         <div id="divScatter">
@@ -214,7 +218,7 @@
     </div>
     <br>
 
-    
+
     <!-- Output area to display the top N rows -->
     <div class="outputDiv"></div>
 
@@ -226,7 +230,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
-        
+
         // Variable to hold the parsed data from the uploaded file
         let myArray;
         // Output div where the data will be displayed
@@ -275,7 +279,7 @@
             }
         }
         // Event listener for the "View Data" button
-        function btnViewOnclick() { 
+        function btnViewOnclick() {
             populateSortDropdown(myArray[0]);
             displayDataFromArray(myArray);
         }
@@ -290,18 +294,18 @@
                     // Handle CSV files
                     if (file.name.endsWith('.csv')) {
                         myArray = csvToArray(fileData);
-                        
+
                     }
                     // Handle Excel files
                     else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
                         const workbook = XLSX.read(fileData, { type: 'binary' });
                         const firstSheet = workbook.SheetNames[0];
                         myArray = XLSX.utils.sheet_to_json(workbook.Sheets[firstSheet], { header: 1 });
-                        
+
                     }
 
-                    
-                    
+
+
                     //document.getElementById('taResults').value = JSON.stringify(myArray, null, 2);
                 };
                 // Read the file accordingly
@@ -374,6 +378,8 @@
             dropdown.disabled = false;  // Enable the dropdown
         }
 
+        //... existing code ...
+
         document.getElementById("btnSort").addEventListener('click', function () {
             // Get the selected column index from the dropdown
             const sortIndex = parseInt(document.getElementById("sortColumn").value);
@@ -393,32 +399,28 @@
             // Copy the data without the header row for sorting
             let sortableArray = myArray.slice(1);
 
+            // Check if the column data are numeric
+            const isNumericColumn = sortableArray.every(row => !isNaN(parseFloat(row[sortIndex])));
+
             // Sort the array based on the selected column and order
-                       sortableArray.sort((a, b) => {
-                const itemA = parseFloat(a[sortIndex]);
-                const itemB = parseFloat(b[sortIndex]);
+            sortableArray.sort((a, b) => {
+                let itemA = a[sortIndex];
+                let itemB = b[sortIndex];
 
-                if (isNaN(itemA) && isNaN(itemB)) {
-                    // Both values are not numbers, treat them as equal
-                    return 0;
-                } else if (isNaN(itemA)) {
-                    // itemA is not a number, place it after itemB
-                    return 1;
-                } else if (isNaN(itemB)) {
-                    // itemB is not a number, place it after itemA
-                    return -1;
-                } else {
-                    // Both values are numbers, perform numerical comparison
-                    if (itemA < itemB) {
-                        return sortOrder === "asc" ? -1 : 1;
-                    } else if (itemA > itemB) {
-                        return sortOrder === "asc" ? 1 : -1;
-                    } else {
-                        return 0;
-                    }
+                // Convert to numbers if column is numeric
+                if (isNumericColumn) {
+                    itemA = parseFloat(itemA);
+                    itemB = parseFloat(itemB);
                 }
-            });
 
+                if (itemA < itemB) {
+                    return sortOrder === "asc" ? -1 : 1;
+                }
+                if (itemA > itemB) {
+                    return sortOrder === "asc" ? 1 : -1;
+                }
+                return 0;
+            });
 
             // Reconstruct the original array with the sorted data
             myArray = [header].concat(sortableArray);
@@ -426,6 +428,8 @@
             // Re-render the data
             displayDataFromArray(myArray);
         });
+
+
 
 
         //Function for standaridizing btn
@@ -493,7 +497,7 @@
             let myArrayPinned;
             let standardizable = myArray.slice(1);
             let numericColumns = [];
-            
+
 
             // Determine which columns are numeric
             for (let j = 1; j < standardizable[0].length; j++) {
@@ -517,7 +521,7 @@
                     if (!outliers.includes(i)) {
                         switch (selectedOption) {
                             case '0-10':
-                                standardizable[i][j] = (((standardizable[i][j] -min) / (max - min) * 10)).toFixed(2);
+                                standardizable[i][j] = (((standardizable[i][j] - min) / (max - min) * 10)).toFixed(2);
                                 break;
                             case '1-10':
                                 standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
@@ -582,7 +586,6 @@
             document.getElementById("divGoodHiLow").style.display = "block";
             const headers = myArray[0];
             const highGood = [];
-            const highBad = [];
 
             for (let i = 1; i < headers.length; i++) {
                 const myDiv = document.getElementById("divCheck");
@@ -596,7 +599,6 @@
 
                 label.htmlFor = `chkId${i}`;
                 label.textContent = headers[i];
-                label.name = 'labelCheck';
 
                 myDiv.appendChild(checkbox);
                 myDiv.appendChild(label);
@@ -604,19 +606,11 @@
                 checkbox.addEventListener('change', function () {
                     if (this.checked) {
                         highGood.push(headers[i]);
-                        const indexInHighBad = highBad.indexOf(headers[i]);
-                        if (indexInHighBad !== -1) {
-                            highBad.splice(indexInHighBad, 1);
-                        }
                     } else {
-                        highBad.push(headers[i]);
-                        const indexInHighGood = highGood.indexOf(headers[i]);
-                        if (indexInHighGood !== -1) {
-                            highGood.splice(indexInHighGood, 1);
-                        }
+                        const index = highGood.indexOf(headers[i]);
+                        if (index > -1) highGood.splice(index, 1);
                     }
 
-                    // Apply the fading color scale to the cells of this column if it's considered high values good
                     if (highGood.includes(headers[i])) {
                         applyFadingColorScaleToColumn(i);
                     } else {
@@ -627,6 +621,7 @@
                 });
             }
         }
+
 
 
 
@@ -702,80 +697,89 @@
                 console.error('Invalid input. Please enter a positive integer.');
             }
         }
-function applyFadingColorScaleToColumn(columnIndex) {
-            const table = document.querySelector('table');
-            const rows = table.querySelectorAll('tr');
+        function applyFadingColorScaleToColumn(columnIndex) {
+    const table = document.querySelector('table');
+    const rows = table.querySelectorAll('tr');
 
-            const cellValues = [];
+    const cellValues = [];
 
-            for (let i = 1; i < rows.length; i++) {
-                const row = rows[i];
-                const cellValue = parseFloat(row.cells[columnIndex].textContent);
+    for (let i = 1; i < rows.length; i++) {
+        const cell = rows[i].cells[columnIndex];
+        const cellValue = parseFloat(cell.textContent);
+        if (!isNaN(cellValue)) {
+            cellValues.push({ value: cellValue, cell: cell });
+        }
+    }
 
-                if (!isNaN(cellValue)) {
-                    cellValues.push({ value: cellValue, row: row.cells[columnIndex] });
-                }
-            }
+    // Sort the cell values
+    cellValues.sort((a, b) => a.value - b.value);
 
-            // Sort the cell values
-            cellValues.sort((a, b) => a.value - b.value);
+    const totalCells = cellValues.length;
+    const top10PercentIndex = Math.ceil(totalCells * 0.9);
+    const bottom10PercentIndex = Math.floor(totalCells * 0.1);
 
-            const totalCells = cellValues.length;
+    for (let i = 0; i < totalCells; i++) {
+        const cellData = cellValues[i];
+        const percentile = i / (totalCells - 1);
 
-            for (let i = 0; i < cellValues.length; i++) {
-                const cellData = cellValues[i];
-                const segment = Math.floor((i / totalCells) * 5); // Divide into 5 segments
+        // Apply color scale
+        if (percentile <= 0.10) {
+            cellData.cell.classList.add('fading-color-scale-0');
+        } else if (percentile <= 0.25) {
+            cellData.cell.classList.add('fading-color-scale-25');
+        } else if (percentile <= 0.50) {
+            cellData.cell.classList.add('fading-color-scale-50');
+        } else if (percentile <= 0.75) {
+            cellData.cell.classList.add('fading-color-scale-75');
+        } else {
+            cellData.cell.classList.add('fading-color-scale-100');
+        }
 
-                // Apply the corresponding fading color class based on the segment
-                switch (segment) {
-                    case 0:
-                        cellData.row.classList.add('fading-color-scale-0');
-                        cellData.row.classList.remove('fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-75', 'fading-color-scale-100');
-                        break;
-                    case 1:
-                        cellData.row.classList.add('fading-color-scale-25');
-                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-50', 'fading-color-scale-75', 'fading-color-scale-100');
-                        break;
-                    case 2:
-                        cellData.row.classList.add('fading-color-scale-50');
-                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-75', 'fading-color-scale-100');
-                        break;
-                    case 3:
-                        cellData.row.classList.add('fading-color-scale-75');
-                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-100');
-                        break;
-                    case 4:
-                        cellData.row.classList.add('fading-color-scale-100');
-                        cellData.row.classList.remove('fading-color-scale-0', 'fading-color-scale-25', 'fading-color-scale-50', 'fading-color-scale-75');
-                        break;
-                }
+        // Apply white outline to top and bottom 10%
+        if (i < bottom10PercentIndex || i >= top10PercentIndex) {
+            cellData.cell.classList.add('white-outline');
+        } else {
+            cellData.cell.classList.remove('white-outline');
+        }
+    }
+}
 
-                // Add a white outline to cells in the worst 10% and best 10%
-                if (segment === 0 || segment === 4) {
-                    cellData.row.classList.add('white-outline');
-                } else {
-                    cellData.row.classList.remove('white-outline');
-                }
+function removeFadingColorScaleFromColumn(columnIndex) {
+    const table = document.querySelector('table');
+    const rows = table.querySelectorAll('tr');
+
+    for (let i = 1; i < rows.length; i++) {
+        const cell = rows[i].cells[columnIndex];
+        cell.classList.remove(
+            'fading-color-scale-0', 
+            'fading-color-scale-25', 
+            'fading-color-scale-50', 
+            'fading-color-scale-75', 
+            'fading-color-scale-100', 
+            'white-outline'
+        );
+    }
+}
+
+
+        function applyColorAndOutline(cell, percentile) {
+            cell.className = '';
+            if (percentile <= 0.10) {
+                cell.classList.add('fading-color-scale-0', 'white-outline');
+            } else if (percentile <= 0.25) {
+                cell.classList.add('fading-color-scale-25');
+            } else if (percentile <= 0.50) {
+                cell.classList.add('fading-color-scale-50');
+            } else if (percentile <= 0.75) {
+                cell.classList.add('fading-color-scale-75');
+            } else if (percentile <= 0.90) {
+                cell.classList.add('fading-color-scale-100', 'white-outline');
+            } else {
+                cell.classList.add('fading-color-scale-100');
             }
         }
 
-        function removeFadingColorScaleFromColumn(columnIndex) {
-            const table = document.querySelector('table');
-            const rows = table.querySelectorAll('tr');
 
-            for (let i = 1; i < rows.length; i++) {
-                const cell = rows[i].cells[columnIndex];
-                cell.classList.remove(
-                    'fading-color-scale-0',
-                    'fading-color-scale-25',
-                    'fading-color-scale-50',
-                    'fading-color-scale-75',
-                    'fading-color-scale-100',
-                    'white-outline' // Remove the white outline class as well
-                );
-            }
-        }
- ////////////////////////////////////////
         document.getElementById("btnPopXandY").addEventListener('click', function () {
             document.getElementById('divPlot').style.display = "block"
             const xAxisSel = document.getElementById("selX");
