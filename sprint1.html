@@ -746,7 +746,7 @@ function applyFadingColorScaleToColumn(columnIndex) {
                 );
             }
         }
-
+ ////////////////////////////////////////
         document.getElementById("btnPopXandY").addEventListener('click', function () {
             document.getElementById('divPlot').style.display = "block"
             const xAxisSel = document.getElementById("selX");
@@ -828,87 +828,7 @@ function applyFadingColorScaleToColumn(columnIndex) {
                 }
             });
         });
-                document.getElementById("btnPopXandY").addEventListener('click', function () {
-            document.getElementById('divPlot').style.display = "block"
-            const xAxisSel = document.getElementById("selX");
-            const yAxisSel = document.getElementById("selY");
 
-            // Clear xValues and yValues arrays
-            xValues = [];
-            yValues = [];
-
-            // Assuming myArray is your 2D array
-
-            // Populate dropdowns with attribute names
-            myArray[0].forEach((value, index) => {
-                const newOptX = document.createElement("option");
-                newOptX.value = index;
-                newOptX.text = value;
-                xAxisSel.add(newOptX);
-
-                const newOptY = document.createElement("option");
-                newOptY.value = index;
-                newOptY.text = value;
-                yAxisSel.add(newOptY);
-            });
-        });
-
-        document.getElementById("btnGenScatter").addEventListener('click', function () {
-            document.getElementById('divScatter').style.display = 'block'
-
-            // Get the canvas element and its 2d context
-            const canvas = document.getElementById('scatterPlot');
-            const ctx = canvas.getContext('2d');
-
-            // Destroy the existing Chart instance if it exists
-            if (Chart.instances.length > 0) {
-                Chart.instances[0].destroy();
-            }
-
-            // Extract X and Y values using selected indices
-            const selectedXIndex = document.getElementById("selX").value;
-            const selectedYIndex = document.getElementById("selY").value;
-
-            for (let i = 1; i < myArray.length; i++) {
-                xValues.push(myArray[i][selectedXIndex]);
-                yValues.push(myArray[i][selectedYIndex]);
-            }
-
-            const maxX = Math.max(...xValues);
-            const maxY = Math.max(...yValues);
-            const minX = Math.min(...xValues);
-            const minY = Math.min(...yValues);
-
-            new Chart(ctx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Scatter Plot',
-                        data: xValues.map((x, index) => ({ x, y: yValues[index] })),
-                        backgroundColor: 'blue',
-                        pointRadius: 4,
-                    }]
-                },
-                options: {
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            position: 'bottom',
-                            min: minX - (minX * .25),
-                            max: maxX + maxX * .25,
-                            stepSize: maxX / 10,
-                        },
-                        y: {
-                            type: 'linear',
-                            position: 'left',
-                            min: minY - minY * .25,
-                            max: maxY + maxY * .25,
-                            stepSize: maxY / 10,
-                        }
-                    }
-                }
-            });
-        });
 
 
     </script>
