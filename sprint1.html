@@ -490,60 +490,63 @@
             displayDataFromArray(myArrayStandardized);
 
         }
-        function btnStandardizeOnclickPinned() {
+function btnStandardizeOnclickPinned() {
+    const selectedOption = document.getElementById('ddStardize').value;
+    const header = myArray[0];
+    let myArrayPinned;
+    let standardizable = myArray.slice(1);
+    let numericColumns = [];
 
-            const selectedOption = document.getElementById('ddStardize').value;
-            const header = myArray[0];
-            let myArrayPinned;
-            let standardizable = myArray.slice(1);
-            let numericColumns = [];
-
-
-            // Determine which columns are numeric
-            for (let j = 1; j < standardizable[0].length; j++) {
-                const isNumericColumn = standardizable.every(row => !isNaN(parseFloat(row[j])));
-                if (isNumericColumn) {
-                    numericColumns.push(j);
-                }
-            }
-
-            for (let j of numericColumns) {
-                let column = standardizable.map(row => parseFloat(row[j]));
-                let min = Math.min(...column);
-                let max = Math.max(...column);
-                // Identify outliers using Z-score
-                const meanValue = column.reduce((sum, value) => sum + value, 0) / column.length;
-                const zScores = column.map(value => (value - mean(column)) / stdDev(column));
-                const outliers = identifyOutliers(zScores);
-
-                // Process outliers based on selected method
-                for (let i = 0; i < standardizable.length; i++) {
-                    if (!outliers.includes(i)) {
-                        switch (selectedOption) {
-                            case '0-10':
-                                standardizable[i][j] = (((standardizable[i][j] - min) / (max - min) * 10)).toFixed(2);
-                                break;
-                            case '1-10':
-                                standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
-                                break;
-                            case '0-1':
-                                standardizable[i][j] = ((standardizable[i][j] - min) / (max - min)).toFixed(2);
-                                break;
-                            case '-1to1':
-                                standardizable[i][j] = (-1 + ((standardizable[i][j] - min) / (max - min) * 2)).toFixed(2);
-                                break;
-                            case 'Z-scores':
-                                standardizable[i][j] = ((standardizable[i][j] - mean(column)) / stdDev(column)).toFixed(2);
-                                break;
-                        }
-                    }
-                }
-            }
-
-            // Standardize the remaining columns
-            myArrayPinned = [header].concat(standardizable);
-            displayDataFromArray(myArrayPinned);
+    // Determine which columns are numeric
+    for (let j = 1; j < standardizable[0].length; j++) {
+        const isNumericColumn = standardizable.every(row => !isNaN(parseFloat(row[j])));
+        if (isNumericColumn) {
+            numericColumns.push(j);
         }
+    }
+
+    // Process outliers and standardize columns
+    for (let j of numericColumns) {
+        let column = standardizable.map(row => parseFloat(row[j]));
+        let min = Math.min(...column);
+        let max = Math.max(...column);
+        // Identify outliers using Z-score
+        const meanValue = mean(column);
+        const zScores = column.map(value => (value - meanValue) / stdDev(column));
+        const outliers = identifyOutliers(zScores);
+
+        // Process outliers and standardize based on selected method
+        for (let i = standardizable.length - 1; i >= 0; i--) {
+            if (outliers.includes(i)) {
+                // Remove the row if it is an outlier
+                standardizable.splice(i, 1);
+            } else {
+                // Apply the selected standardization method only to non-outliers
+                switch (selectedOption) {
+                    case '0-10':
+                        standardizable[i][j] = (((standardizable[i][j] - min) / (max - min) * 10)).toFixed(2);
+                        break;
+                    case '1-10':
+                        standardizable[i][j] = (1 + ((standardizable[i][j] - min) / (max - min) * 9)).toFixed(2);
+                        break;
+                    case '0-1':
+                        standardizable[i][j] = ((standardizable[i][j] - min) / (max - min)).toFixed(2);
+                        break;
+                    case '-1to1':
+                        standardizable[i][j] = (-1 + ((standardizable[i][j] - min) / (max - min) * 2)).toFixed(2);
+                        break;
+                    case 'Z-scores':
+                        standardizable[i][j] = ((standardizable[i][j] - meanValue) / stdDev(column)).toFixed(2);
+                        break;
+                }
+            }
+        }
+    }
+
+    // Standardize the remaining columns
+    myArrayPinned = [header].concat(standardizable);
+    displayDataFromArray(myArrayPinned);
+}
         //function to calculate mean
         function mean(column) {
             return column.reduce((sum, value) => sum + value, 0) / column.length;
